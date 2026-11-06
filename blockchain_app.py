@@ -191,6 +191,8 @@ if role == "교수":
 
     # ---------------- 단계 제어 ----------------
     st.markdown("### 단계 제어")
+    st.caption("📱 ③④단계는 휴대폰으로 진행하세요. "
+               "휴대폰 브라우저로 이 주소를 열어 교수 화면에 로그인해 두시면 됩니다.")
     cols = st.columns(6)
     for i, (k, label) in enumerate(PHASES.items()):
         if cols[i].button(label.split(" ")[0], key=f"ph{k}",
@@ -238,13 +240,21 @@ if role == "교수":
                 "<b class='brick'>블록은 두 번만 돌리면 충분합니다.</b> "
                 "첫 번째는 절차를 익히는 용도, 두 번째는 속도를 붙이는 용도입니다. "
                 "세 번째부터는 지루해집니다.")
-        elif phase == 3:
-            box("<b class='brick'>이중지불 단계</b> — 공모자에게 비밀 지령을 보냅니다.<br>"
-                "공모자는 <b>1코인씩 여러 번</b> 보냅니다. 한 건씩 보면 평범한 거래라 "
-                "금액으로는 알 수 없고, <b>같은 사람이 보낸 건수를 세어야</b> 잡힙니다.")
-        elif phase == 4:
-            box("<b class='brick'>51% 공격 단계</b> — 교실의 과반에게 담합 지령을 보냅니다.<br>"
-                "정상 거래가 통과되지 않는 장면을 만든 뒤, 당한 학생에게 소감을 물어보세요.")
+        else:
+            # ③④ 단계의 진행 안내는 수가 드러나므로 기본으로 접어 둡니다.
+            guide = {
+                3: ("<b class='brick'>이중지불 단계</b> — 공모자에게 비밀 지령을 보냅니다.<br>"
+                    "공모자는 <b>1코인씩 여러 번</b> 보냅니다. 한 건씩 보면 평범한 거래라 "
+                    "금액으로는 알 수 없고, <b>같은 사람이 보낸 건수를 세어야</b> 잡힙니다."),
+                4: ("<b class='brick'>51% 공격 단계</b> — 교실의 과반에게 담합 지령을 보냅니다.<br>"
+                    "정상 거래가 통과되지 않는 장면을 만든 뒤, "
+                    "당한 학생에게 소감을 물어보세요."),
+            }[phase]
+            if projecting:
+                with st.expander("📖 교수용 진행 안내 — 학생이 보면 안 됩니다 (클릭해서 펼치기)"):
+                    st.markdown(f'<div class="boxed">{guide}</div>', unsafe_allow_html=True)
+            else:
+                box(guide)
 
         if phase in SECRET_PHASES and projecting:
             warn("🔴 지금 화면이 강의실에 보이는 중입니다. "
@@ -256,7 +266,8 @@ if role == "교수":
 
         # ---------------- 지령 발송 ----------------
         show_secret = not (phase in SECRET_PHASES and projecting)
-        with st.expander("🔒 비밀 지령 보내기", expanded=(phase in SECRET_PHASES)):
+        with st.expander("🔒 비밀 지령 보내기",
+                         expanded=(phase in SECRET_PHASES and not projecting)):
             names = [s["name"] for s in sts]
             bal_map = {s["name"]: float(s["balance"]) for s in sts}
 
